@@ -1,0 +1,364 @@
+{
+  "run_timestamp": "2026-03-26T11:11:34.259214",
+  "device": "cuda",
+  "base_model": "all-MiniLM-L6-v2",
+  "epochs": 10,
+  "batch_size": 64,
+  "loss_function": "MultipleNegativesRankingLoss",
+  "datasets": [
+    {
+      "name": "KisanVaani/agriculture-qa-english-only",
+      "loader": "standard",
+      "total_rows": 22615,
+      "kept": 18311,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 4304,
+      "columns": [
+        "question",
+        "answers"
+      ],
+      "error": null
+    },
+    {
+      "name": "Mahesh2841/Agriculture",
+      "loader": "standard",
+      "total_rows": 5916,
+      "kept": 4986,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 930,
+      "columns": [
+        "instruction",
+        "input",
+        "response"
+      ],
+      "error": null
+    },
+    {
+      "name": "argilla/farming",
+      "loader": "standard",
+      "total_rows": 1695,
+      "kept": 1695,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [
+        "id",
+        "instruction",
+        "response"
+      ],
+      "error": null
+    },
+    {
+      "name": "DARJYO/sawotiQ29_crop_optimization",
+      "loader": "standard",
+      "total_rows": 40,
+      "kept": 40,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [
+        "Crop",
+        "Question",
+        "Answer"
+      ],
+      "error": null
+    },
+    {
+      "name": "YuvrajSingh9886/Agriculture-Irrigation-QA-Pairs-Dataset",
+      "loader": "standard",
+      "total_rows": 3851,
+      "kept": 3556,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 295,
+      "columns": [
+        "Unnamed: 0",
+        "ANSWER",
+        "QUESTION.question",
+        "QUESTION.paragraph"
+      ],
+      "error": null
+    },
+    {
+      "name": "YuvrajSingh9886/Agriculture-Soil-QA-Pairs-Dataset",
+      "loader": "standard",
+      "total_rows": 3447,
+      "kept": 3127,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 320,
+      "columns": [
+        "Unnamed: 0",
+        "ANSWER",
+        "QUESTION.question",
+        "QUESTION.paragraph"
+      ],
+      "error": null
+    },
+    {
+      "name": "shchoi83/agriQA",
+      "loader": "standard",
+      "total_rows": 174930,
+      "kept": 131798,
+      "empty_skipped": 1,
+      "vague_removed": 7513,
+      "length_removed": 35618,
+      "columns": [
+        "questions",
+        "answers",
+        "text"
+      ],
+      "error": null
+    },
+    {
+      "name": "SivaResearch/Agri",
+      "loader": "formatted_text",
+      "total_rows": 174994,
+      "kept": 149499,
+      "empty_skipped": 1,
+      "vague_removed": 7513,
+      "length_removed": 17981,
+      "columns": [
+        "formatted_data"
+      ],
+      "error": null
+    },
+    {
+      "name": "AI71ai/agrillm-train-146k",
+      "loader": "jsonl_multiturn",
+      "total_rows": 143875,
+      "kept": 162825,
+      "empty_skipped": 5,
+      "vague_removed": 0,
+      "length_removed": 1386,
+      "columns": [],
+      "error": null
+    }
+  ],
+  "state_datasets": [
+    {
+      "name": "KisanVaani-WestBengal-filter",
+      "loader": "keyword_filter",
+      "total_rows": 22615,
+      "kept": 0,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [
+        "question",
+        "answers"
+      ],
+      "error": null
+    },
+    {
+      "name": "rajputta/agri_crop_data",
+      "loader": "standard",
+      "total_rows": 0,
+      "kept": 0,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [],
+      "error": "Dataset 'rajputta/agri_crop_data' doesn't exist on the Hub or cannot be accessed."
+    },
+    {
+      "name": "prsdm/agri_hindi_bn",
+      "loader": "standard",
+      "total_rows": 0,
+      "kept": 0,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [],
+      "error": "Dataset 'prsdm/agri_hindi_bn' doesn't exist on the Hub or cannot be accessed."
+    },
+    {
+      "name": "KisanVaani-TamilNadu-filter",
+      "loader": "keyword_filter",
+      "total_rows": 22615,
+      "kept": 71,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [
+        "question",
+        "answers"
+      ],
+      "error": null
+    },
+    {
+      "name": "ICAR-IIHR/horticultural-crops-india",
+      "loader": "standard",
+      "total_rows": 0,
+      "kept": 0,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [],
+      "error": "Dataset 'ICAR-IIHR/horticultural-crops-india' doesn't exist on the Hub or cannot be accessed."
+    },
+    {
+      "name": "KisanVaani-Kerala-filter",
+      "loader": "keyword_filter",
+      "total_rows": 22615,
+      "kept": 52,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [
+        "question",
+        "answers"
+      ],
+      "error": null
+    },
+    {
+      "name": "argilla/farming",
+      "loader": "standard",
+      "total_rows": 1695,
+      "kept": 1695,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [
+        "id",
+        "instruction",
+        "response"
+      ],
+      "error": null
+    },
+    {
+      "name": "KisanVaani-AndhraPradesh-filter",
+      "loader": "keyword_filter",
+      "total_rows": 22615,
+      "kept": 179,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 36,
+      "columns": [
+        "question",
+        "answers"
+      ],
+      "error": null
+    },
+    {
+      "name": "Mahesh2841/Agriculture",
+      "loader": "standard",
+      "total_rows": 5916,
+      "kept": 4986,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 930,
+      "columns": [
+        "instruction",
+        "input",
+        "response"
+      ],
+      "error": null
+    },
+    {
+      "name": "KisanVaani-Karnataka-filter",
+      "loader": "keyword_filter",
+      "total_rows": 22615,
+      "kept": 96,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [
+        "question",
+        "answers"
+      ],
+      "error": null
+    },
+    {
+      "name": "DARJYO/sawotiQ29_crop_optimization",
+      "loader": "standard",
+      "total_rows": 40,
+      "kept": 40,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [
+        "Crop",
+        "Question",
+        "Answer"
+      ],
+      "error": null
+    },
+    {
+      "name": "KisanVaani-Punjab-filter",
+      "loader": "keyword_filter",
+      "total_rows": 22615,
+      "kept": 58,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 31,
+      "columns": [
+        "question",
+        "answers"
+      ],
+      "error": null
+    },
+    {
+      "name": "shchoi83/agriQA",
+      "loader": "standard",
+      "total_rows": 174930,
+      "kept": 131798,
+      "empty_skipped": 1,
+      "vague_removed": 7513,
+      "length_removed": 35618,
+      "columns": [
+        "questions",
+        "answers",
+        "text"
+      ],
+      "error": null
+    },
+    {
+      "name": "KisanVaani-Gujarat-filter",
+      "loader": "keyword_filter",
+      "total_rows": 22615,
+      "kept": 0,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 0,
+      "columns": [
+        "question",
+        "answers"
+      ],
+      "error": null
+    },
+    {
+      "name": "YuvrajSingh9886/Agriculture-Irrigation-QA-Pairs-Dataset",
+      "loader": "standard",
+      "total_rows": 3851,
+      "kept": 3556,
+      "empty_skipped": 0,
+      "vague_removed": 0,
+      "length_removed": 295,
+      "columns": [
+        "Unnamed: 0",
+        "ANSWER",
+        "QUESTION.question",
+        "QUESTION.paragraph"
+      ],
+      "error": null
+    }
+  ],
+  "total_removed_vague": 22539,
+  "total_removed_empty": 3,
+  "total_length_filtered": 96291,
+  "deduplication": {
+    "before": 618368,
+    "after": 439251,
+    "removed": 179117
+  },
+  "final_training_pairs": 439251,
+  "embeddings_shape": [
+    439251,
+    384
+  ],
+  "model_pkl_size_mb": 1030.42,
+  "status": "complete"
+}

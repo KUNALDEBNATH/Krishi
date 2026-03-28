@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Krishi — Agriculture Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --leaf:        #1d5c35;
+  --leaf-mid:    #2e7d4f;
+  --leaf-bright: #3fa866;
+  --leaf-pale:   #e6f4ec;
+  --leaf-mist:   #f0f9f3;
+  --soil:        #5c3d1e;
+  --soil-warm:   #8b5e3c;
+  --gold:        #c9952a;
+  --gold-light:  #f0c75e;
+  --cream:       #faf8f3;
+  --ink:         #1a2b1f;
+  --ink-soft:    #4a6252;
+  --white:       #ffffff;
+  --shadow-sm:   0 2px 8px rgba(0,0,0,.08);
+  --shadow-md:   0 4px 20px rgba(0,0,0,.12);
+  --shadow-lg:   0 8px 40px rgba(0,0,0,.16);
+  --r:           16px;
+  --r-sm:        10px;
+  --ease:        cubic-bezier(.25,.46,.45,.94);
+
+  /* Siri orb colors */
+  --siri-c1: #00c6ff;
+  --siri-c2: #9d4edd;
+  --siri-c3: #3fa866;
+  --siri-c4: #f0c75e;
+  --siri-c5: #ff6b6b;
+}
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  display: flex;
+  flex-direction: column;
+  color: var(--ink);
+  position: relative;
+}
+
+/* ── Background texture ──────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 10% 10%, rgba(46,125,79,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 80%, rgba(201,149,42,.06) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='.7' fill='%231d5c35' opacity='.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────── */
+header {
+  position: relative;
+  z-index: 50;
+  background: var(--leaf);
+  background-image: linear-gradient(135deg, #0f3d22 0%, var(--leaf) 50%, #276643 100%);
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: 0 2px 16px rgba(0,0,0,.25);
+  flex-shrink: 0;
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+}
+
+.header-brand { display: flex; align-items: center; gap: 12px; }
+
+.brand-icon {
+  width: 38px; height: 38px;
+  background: rgba(255,255,255,.12);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.brand-text h1 {
+  font-family: 'Playfair Display', serif;
+  color: var(--white);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+  line-height: 1.2;
+}
+
+.brand-text span {
+  color: rgba(255,255,255,.55);
+  font-size: .68rem;
+  font-weight: 300;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.header-controls { display: flex; align-items: center; gap: 10px; }
+
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: .7rem;
+  color: rgba(255,255,255,.7);
+  letter-spacing: .5px;
+}
+
+#status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #ef5350; flex-shrink: 0;
+  transition: background .4s, box-shadow .4s;
+}
+#status-dot.online { background: #69f0ae; box-shadow: 0 0 6px #69f0ae; }
+
+#lang-select {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.22);
+  color: var(--white);
+  border-radius: var(--r-sm);
+  padding: 5px 28px 5px 10px;
+  font-size: .78rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  outline: none;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='rgba(255,255,255,.7)'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: background .2s;
+}
+#lang-select:hover { background-color: rgba(255,255,255,.2); }
+#lang-select option { background: #1d5c35; color: #fff; }
+
+#clear-btn {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.8);
+  border-radius: var(--r-sm);
+  padding: 5px 12px;
+  font-size: .75rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex; align-items: center; gap: 5px;
+}
+#clear-btn:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+/* ── Layout ──────────────────────────────────────────────────────────── */
+main {
+  position: relative; z-index: 1;
+  flex: 1;
+  display: flex; flex-direction: column;
+  max-width: 820px; width: 100%;
+  margin: 0 auto;
+  padding: 0 16px 16px;
+  overflow: hidden; min-height: 0;
+}
+
+/* ── Chat window ─────────────────────────────────────────────────────── */
+#chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 4px 12px;
+  display: flex; flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+  min-height: 0;
+}
+
+#chat-window::-webkit-scrollbar { width: 4px; }
+#chat-window::-webkit-scrollbar-track { background: transparent; }
+#chat-window::-webkit-scrollbar-thumb { background: var(--leaf-bright); border-radius: 4px; }
+
+/* ── Welcome card ────────────────────────────────────────────────────── */
+.welcome-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 32px 28px 24px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(46,125,79,.1);
+  text-align: center;
+  position: relative; overflow: hidden;
+  animation: fadeUp .5s var(--ease) both;
+}
+
+.welcome-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--leaf), var(--gold), var(--leaf-bright));
+}
+
+.welcome-icon {
+  width: 64px; height: 64px;
+  background: var(--leaf-mist); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; margin: 0 auto 16px;
+  border: 2px solid var(--leaf-pale);
+}
+
+.welcome-card h2 {
+  font-family: 'Playfair Display', serif;
+  color: var(--leaf); font-size: 1.25rem; margin-bottom: 8px;
+}
+
+.welcome-card p {
+  color: var(--ink-soft); font-size: .875rem;
+  line-height: 1.6; font-weight: 300;
+}
+
+/* Quick chips */
+.chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center; margin-top: 20px;
+}
+
+.chip {
+  background: var(--leaf-mist);
+  border: 1.5px solid var(--leaf-pale);
+  color: var(--leaf);
+  padding: 6px 14px; border-radius: 30px;
+  font-size: .78rem; font-weight: 500;
+  cursor: pointer;
+  transition: all .2s var(--ease);
+  white-space: nowrap;
+}
+
+.chip:hover {
+  background: var(--leaf); color: var(--white);
+  border-color: var(--leaf);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(29,92,53,.2);
+}
+
+/* ── Messages ────────────────────────────────────────────────────────── */
+.msg-row {
+  display: flex; align-items: flex-end; gap: 10px;
+  animation: fadeUp .28s var(--ease) both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.msg-row.user { flex-direction: row-reverse; }
+
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.msg-row.bot .avatar {
+  background: linear-gradient(135deg, var(--leaf-pale), #d0ecda);
+  border: 1.5px solid rgba(46,125,79,.2);
+}
+
+.msg-row.user .avatar {
+  background: linear-gradient(135deg, var(--leaf), var(--leaf-mid));
+  border: 1.5px solid rgba(255,255,255,.3);
+}
+
+.bubble {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: .9rem; line-height: 1.6;
+  position: relative; word-break: break-word;
+}
+
+.msg-row.bot .bubble {
+  background: var(--white); color: var(--ink);
+  border-bottom-left-radius: 5px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,.05);
+}
+
+.msg-row.user .bubble {
+  background: linear-gradient(135deg, var(--leaf-mid), var(--leaf));
+  color: var(--white);
+  border-bottom-right-radius: 5px;
+  box-shadow: 0 4px 16px rgba(29,92,53,.25);
+}
+
+.model-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 8px; font-size: .67rem;
+  color: var(--ink-soft);
+  background: var(--leaf-mist);
+  border-radius: 20px; padding: 3px 9px;
+  font-weight: 500; letter-spacing: .3px;
+}
+
+.score-bar-wrap {
+  margin-top: 6px; display: flex; align-items: center;
+  gap: 8px; font-size: .68rem; color: var(--ink-soft);
+}
+
+.score-bar {
+  height: 3px; flex: 1;
+  background: #e8ede9; border-radius: 4px; overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--leaf-bright), var(--gold));
+  border-radius: 4px; transition: width .6s var(--ease);
+}
+
+.speak-btn {
+  margin-top: 8px;
+  background: var(--leaf-mist);
+  border: 1px solid var(--leaf-pale);
+  color: var(--leaf);
+  border-radius: 8px; padding: 3px 10px;
+  font-size: .72rem; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: all .2s;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.speak-btn:hover { background: var(--leaf); color: var(--white); border-color: var(--leaf); }
+
+/* ── Typing indicator ─────────────────────────────────────────────────── */
+.typing-row { display: flex; align-items: flex-end; gap: 10px; }
+
+.typing-bubble {
+  background: var(--white);
+  border-radius: 18px; border-bottom-left-radius: 5px;
+  padding: 14px 18px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,.05);
+  display: flex; gap: 5px; align-items: center;
+}
+
+.typing-bubble span {
+  width: 7px; height: 7px;
+  background: var(--leaf-bright);
+  border-radius: 50%;
+  animation: bounce 1.3s infinite; opacity: .7;
+}
+.typing-bubble span:nth-child(2) { animation-delay: .18s; }
+.typing-bubble span:nth-child(3) { animation-delay: .36s; }
+
+@keyframes bounce {
+  0%,60%,100% { transform: translateY(0); opacity: .7; }
+  30%          { transform: translateY(-7px); opacity: 1; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   VOICE INPUT AREA — Siri-style
+   ══════════════════════════════════════════════════════════════════════ */
+.voice-area {
+  background: var(--white);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+  padding: 18px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(46,125,79,.1);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.voice-area::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--leaf), var(--gold-light), var(--leaf-bright));
+}
+
+/* Transcript preview */
+#transcript-bar {
+  width: 100%;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .88rem;
+  color: var(--ink-soft);
+  font-style: italic;
+  letter-spacing: .2px;
+  text-align: center;
+  transition: color .3s;
+  font-weight: 300;
+  padding: 0 8px;
+  line-height: 1.45;
+}
+
+#transcript-bar.active {
+  color: var(--ink);
+  font-style: normal;
+  font-weight: 400;
+}
+
+/* ── Orb row ── */
+.orb-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
+}
+
+/* TTS toggle compact */
+.tts-pill {
+  display: flex; align-items: center; gap: 7px;
+  font-size: .75rem; color: var(--ink-soft);
+  cursor: pointer; user-select: none; font-weight: 500;
+}
+
+.tts-pill input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 32px; height: 18px;
+  background: #d0d8d3; border-radius: 20px;
+  position: relative; cursor: pointer; transition: background .25s; flex-shrink: 0;
+}
+
+.tts-pill input[type="checkbox"]:checked { background: var(--leaf-mid); }
+
+.tts-pill input[type="checkbox"]::after {
+  content: ''; position: absolute;
+  width: 12px; height: 12px;
+  background: var(--white); border-radius: 50%;
+  top: 3px; left: 3px;
+  transition: left .25s var(--ease);
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+.tts-pill input[type="checkbox"]:checked::after { left: 17px; }
+
+/* ── The Siri Orb ── */
+.orb-wrap {
+  position: relative;
+  width: 88px; height: 88px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Pulse rings — only animate when listening */
+.orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+
+.orb-ring-1 {
+  width: 88px; height: 88px;
+  background: conic-gradient(var(--siri-c1), var(--siri-c2), var(--siri-c3), var(--siri-c4), var(--siri-c5), var(--siri-c1));
+  filter: blur(12px);
+}
+
+.orb-ring-2 {
+  width: 108px; height: 108px;
+  background: conic-gradient(var(--siri-c2), var(--siri-c3), var(--siri-c4), var(--siri-c1), var(--siri-c2));
+  filter: blur(20px);
+  animation-delay: .1s;
+}
+
+.orb-ring-3 {
+  width: 130px; height: 130px;
+  background: conic-gradient(var(--siri-c3), var(--siri-c5), var(--siri-c1), var(--siri-c2), var(--siri-c3));
+  filter: blur(28px);
+  animation-delay: .2s;
+}
+
+/* Active state — show rings + spin */
+.orb-wrap.listening .orb-ring-1,
+.orb-wrap.listening .orb-ring-2,
+.orb-wrap.listening .orb-ring-3 { opacity: .55; }
+
+.orb-wrap.listening .orb-ring-1 { animation: orbSpin 2.4s linear infinite; }
+.orb-wrap.listening .orb-ring-2 { animation: orbSpin 3.2s linear infinite reverse; }
+.orb-wrap.listening .orb-ring-3 { animation: orbSpin 4.0s linear infinite; }
+
+@keyframes orbSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* The main orb button */
+.orb-btn {
+  position: relative; z-index: 2;
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--leaf-mid), var(--leaf));
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 24px rgba(29,92,53,.35);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), background .3s;
+  cursor: pointer;
+  outline: none;
+}
+
+.orb-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 32px rgba(29,92,53,.45);
+}
+
+.orb-btn:active { transform: scale(.95); }
+.orb-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* While listening — orb becomes colorful */
+.orb-wrap.listening .orb-btn {
+  background: linear-gradient(135deg, #6a11cb, #2575fc, #11998e);
+  box-shadow: 0 6px 32px rgba(106,17,203,.45);
+  animation: orbPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.08); }
+}
+
+/* Mic icon inside orb */
+.orb-btn svg { pointer-events: none; }
+
+/* Wave bars (audio visualizer effect) — shown while listening */
+.wave-bars {
+  display: flex; align-items: center; gap: 3px; height: 28px;
+  opacity: 0; transition: opacity .3s;
+}
+
+.wave-bars.visible { opacity: 1; }
+
+.wave-bar {
+  width: 3px; border-radius: 3px;
+  background: linear-gradient(180deg, var(--siri-c1), var(--siri-c3));
+  transform-origin: bottom;
+  height: 6px;
+}
+
+.orb-wrap.listening ~ .wave-bars .wave-bar {
+  animation: waveDance 0.6s ease-in-out infinite alternate;
+}
+
+.wave-bar:nth-child(1) { animation-delay: 0s;    animation-duration: .5s; }
+.wave-bar:nth-child(2) { animation-delay: .07s;   animation-duration: .6s; }
+.wave-bar:nth-child(3) { animation-delay: .14s;   animation-duration: .45s; }
+.wave-bar:nth-child(4) { animation-delay: .21s;   animation-duration: .7s; }
+.wave-bar:nth-child(5) { animation-delay: .28s;   animation-duration: .55s; }
+.wave-bar:nth-child(6) { animation-delay: .07s;   animation-duration: .65s; }
+.wave-bar:nth-child(7) { animation-delay: .14s;   animation-duration: .5s; }
+
+@keyframes waveDance {
+  from { height: 4px; opacity: .5; }
+  to   { height: 26px; opacity: 1; }
+}
+
+/* Hint label below orb */
+#voice-hint {
+  font-size: .72rem; color: var(--ink-soft);
+  letter-spacing: .4px; font-weight: 400;
+  text-align: center;
+  transition: color .3s;
+}
+
+/* ── Text input fallback row ─────────────────────────────────────────── */
+.text-input-row {
+  display: flex; gap: 8px; width: 100%;
+}
+
+#text-input {
+  flex: 1;
+  border: 1.5px solid var(--leaf-pale);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: .875rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  background: var(--leaf-mist);
+  outline: none;
+  transition: border-color .2s;
+}
+#text-input:focus { border-color: var(--leaf-mid); }
+#text-input::placeholder { color: var(--ink-soft); opacity: .7; }
+
+#send-btn {
+  background: linear-gradient(135deg, var(--leaf-mid), var(--leaf));
+  color: var(--white);
+  border: none;
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: .82rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .2s, transform .15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+#send-btn:hover { opacity: .9; }
+#send-btn:active { transform: scale(.96); }
+#send-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Toast ───────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 116px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: var(--white);
+  padding: 9px 20px; border-radius: 30px;
+  font-size: .8rem; font-weight: 500;
+  opacity: 0; transition: opacity .3s, transform .3s;
+  pointer-events: none; z-index: 300;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  letter-spacing: .2px;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 540px) {
+  .bubble { max-width: 85%; }
+  .brand-text span { display: none; }
+  header { padding: 0 14px; }
+  .welcome-card { padding: 24px 18px 20px; }
+  .orb-btn { width: 64px; height: 64px; }
+  .orb-wrap { width: 76px; height: 76px; }
+  .orb-ring-1 { width: 76px; height: 76px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<header>
+  <div class="header-brand">
+    <div class="brand-icon">🌾</div>
+    <div class="brand-text">
+      <h1>Krishi</h1>
+      <span>Agriculture Intelligence</span>
+    </div>
+  </div>
+
+  <div class="header-controls">
+    <div class="status-pill">
+      <span id="status-dot" title="API status"></span>
+      <span id="status-text">Connecting</span>
+    </div>
+    <select id="lang-select" aria-label="Select language">
+      <!-- populated by JS -->
+    </select>
+    <button id="clear-btn" title="Clear conversation">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      Clear
+    </button>
+  </div>
+</header>
+
+<!-- ── Main ───────────────────────────────────────────────────────────────── -->
+<main>
+  <div id="chat-window">
+    <!-- Welcome card -->
+    <div class="welcome-card" id="welcome-card">
+      <div class="welcome-icon">🌱</div>
+      <h2>Good day, farmer friend</h2>
+      <p>Tap the mic and speak your question about crops, soil,<br/>
+         fertilizers, irrigation, pests or livestock — in any language.</p>
+      <div class="chips">
+        <div class="chip" onclick="quickSend('Best fertilizer for paddy?')">🌾 Paddy fertilizer</div>
+        <div class="chip" onclick="quickSend('How to control aphids in cotton?')">🪲 Aphid control</div>
+        <div class="chip" onclick="quickSend('Irrigation schedule for wheat?')">💧 Wheat irrigation</div>
+        <div class="chip" onclick="quickSend('Soil pH for tomatoes?')">🍅 Tomato soil pH</div>
+        <div class="chip" onclick="quickSend('Best season to sow maize in Tamil Nadu?')">🌽 Maize season TN</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Voice area ───────────────────────────────────────────────────────── -->
+  <div class="voice-area">
+
+    <!-- Live transcript / idle hint -->
+    <div id="transcript-bar">Tap the mic and speak your question…</div>
+
+    <!-- Orb + wave visualizer row -->
+    <div class="orb-row">
+
+      <!-- Left: TTS toggle -->
+      <label class="tts-pill" title="Toggle voice replies">
+        <input type="checkbox" id="tts-checkbox" />
+        <span>🔊 Voice reply</span>
+      </label>
+
+      <!-- Centre: Siri orb -->
+      <div class="orb-wrap" id="orb-wrap">
+        <div class="orb-ring orb-ring-3"></div>
+        <div class="orb-ring orb-ring-2"></div>
+        <div class="orb-ring orb-ring-1"></div>
+        <button class="orb-btn" id="orb-btn" title="Tap to speak" aria-label="Start voice input">
+          <!-- Mic icon (idle) -->
+          <svg id="mic-icon" width="28" height="28" viewBox="0 0 24 24"
+               fill="none" stroke="white" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="2" width="6" height="12" rx="3"/>
+            <path d="M5 10a7 7 0 0 0 14 0"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+            <line x1="9"  y1="22" x2="15" y2="22"/>
+          </svg>
+          <!-- Stop icon (listening) — hidden by default -->
+          <svg id="stop-icon" width="24" height="24" viewBox="0 0 24 24"
+               fill="white" stroke="none" style="display:none">
+            <rect x="5" y="5" width="14" height="14" rx="2"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right: Wave bars visualizer -->
+      <div class="wave-bars" id="wave-bars">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    </div>
+
+    <div id="voice-hint">Tap to speak · Tap again to stop &amp; send</div>
+
+    <!-- Text input fallback (always visible) -->
+    <div class="text-input-row">
+      <input type="text" id="text-input" placeholder="Or type your question here…" autocomplete="off" />
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+// MULTILINGUAL UI STRINGS
+// ══════════════════════════════════════════════════════════════════════════
+const UI = {
+  en: {
+    greeting:      'Good day, farmer friend',
+    subtitle:      'Tap the mic and speak your question about crops, soil, fertilisers, irrigation, pests or livestock — in any language.',
+    chips: [
+      { label: '🌾 Paddy fertilizer',  query: 'Best fertilizer for paddy?' },
+      { label: '🪲 Aphid control',      query: 'How to control aphids in cotton?' },
+      { label: '💧 Wheat irrigation',   query: 'Irrigation schedule for wheat?' },
+      { label: '🍅 Tomato soil pH',     query: 'Soil pH for tomatoes?' },
+      { label: '🌽 Maize season TN',    query: 'Best season to sow maize in Tamil Nadu?' },
+    ],
+    transcriptIdle:    'Tap the mic and speak your question…',
+    listening:         'Listening…',
+    hintIdle:          'Tap to speak · Tap again to stop & send',
+    hintListening:     'Listening… tap again to stop & send',
+    ttsLabel:          '🔊 Voice reply',
+    listenBtn:         '🔊 Listen',
+    confidence:        'Confidence',
+    cleared:           'Conversation cleared',
+    voiceOnToast:      '🔊 Voice reply ON',
+    voiceOffToast:     '🔇 Text only',
+    noSpeech:          'No speech detected. Try again.',
+    micDenied:         '🎤 Microphone access denied. Enable it in browser settings.',
+    noSupport:         '🎤 Voice input not supported in this browser. Try Chrome or Edge.',
+    micFail:           'Could not start microphone. Please allow access.',
+    playbackFail:      'Voice playback failed',
+    autoplayBlocked:   'Tap 🔊 to hear the reply (autoplay blocked)',
+    online:            'Online',
+    offline:           'Offline',
+    connecting:        'Connecting',
+    clearBtn:          'Clear',
+    sendBtn:           'Send',
+    textPlaceholder:   'Or type your question here…',
+  },
+  hi: {
+    greeting:      'नमस्ते, किसान मित्र',
+    subtitle:      'माइक दबाएं और फसल, मिट्टी, उर्वरक, सिंचाई, कीट या पशुधन के बारे में अपना सवाल बोलें।',
+    chips: [
+      { label: '🌾 धान उर्वरक',         query: 'धान के लिए सबसे अच्छा उर्वरक कौन सा है?' },
+      { label: '🪲 माहू नियंत्रण',      query: 'कपास में माहू को कैसे नियंत्रित करें?' },
+      { label: '💧 गेहूं सिंचाई',       query: 'गेहूं के लिए सिंचाई कार्यक्रम क्या है?' },
+      { label: '🍅 टमाटर मिट्टी pH',    query: 'टमाटर के लिए मिट्टी का pH क्या होना चाहिए?' },
+      { label: '🌽 मक्का मौसम',         query: 'मध्यप्रदेश में मक्का बोने का सबसे अच्छा मौसम कब है?' },
+    ],
+    transcriptIdle:    'माइक दबाएं और अपना सवाल बोलें…',
+    listening:         'सुन रहे हैं…',
+    hintIdle:          'बोलने के लिए टैप करें · रोकने के लिए फिर टैप करें',
+    hintListening:     'सुन रहे हैं… भेजने के लिए फिर टैप करें',
+    ttsLabel:          '🔊 आवाज़ उत्तर',
+    listenBtn:         '🔊 सुनें',
+    confidence:        'विश्वास',
+    cleared:           'बातचीत साफ़ हो गई',
+    voiceOnToast:      '🔊 आवाज़ उत्तर चालू',
+    voiceOffToast:     '🔇 केवल पाठ',
+    noSpeech:          'कोई आवाज़ नहीं मिली। फिर कोशिश करें।',
+    micDenied:         '🎤 माइक्रोफ़ोन अनुमति अस्वीकार। ब्राउज़र सेटिंग में सक्षम करें।',
+    noSupport:         '🎤 आवाज़ इनपुट इस ब्राउज़र में उपलब्ध नहीं। Chrome या Edge आज़माएं।',
+    micFail:           'माइक्रोफ़ोन शुरू नहीं हो सका। कृपया अनुमति दें।',
+    playbackFail:      'आवाज़ चलाने में त्रुटि',
+    autoplayBlocked:   '🔊 दबाएं उत्तर सुनने के लिए (ऑटोप्ले ब्लॉक)',
+    online:            'ऑनलाइन',
+    offline:           'ऑफ़लाइन',
+    connecting:        'जोड़ रहे हैं',
+    clearBtn:          'साफ़ करें',
+    sendBtn:           'भेजें',
+    textPlaceholder:   'या यहाँ टाइप करें…',
+  },
+  bn: {
+    greeting:      'নমস্কার, কৃষক বন্ধু',
+    subtitle:      'মাইক চাপুন এবং ফসল, মাটি, সার, সেচ, কীটপতঙ্গ বা পশুপালন সম্পর্কে আপনার প্রশ্ন বলুন।',
+    chips: [
+      { label: '🌾 ধান সার',           query: 'ধানের জন্য সেরা সার কোনটি?' },
+      { label: '🪲 জাব পোকা নিয়ন্ত্রণ', query: 'তুলায় জাব পোকা কীভাবে নিয়ন্ত্রণ করবেন?' },
+      { label: '💧 গম সেচ',            query: 'গমের সেচ সময়সূচি কী?' },
+      { label: '🍅 টমেটো মাটির pH',    query: 'টমেটোর জন্য মাটির pH কত হওয়া উচিত?' },
+      { label: '🌽 ভুট্টার মৌসুম',     query: 'পশ্চিমবঙ্গে ভুট্টা বোনার সেরা সময় কখন?' },
+    ],
+    transcriptIdle:    'মাইক চাপুন এবং প্রশ্ন বলুন…',
+    listening:         'শুনছি…',
+    hintIdle:          'বলতে ট্যাপ করুন · থামাতে আবার ট্যাপ করুন',
+    hintListening:     'শুনছি… পাঠাতে আবার ট্যাপ করুন',
+    ttsLabel:          '🔊 কণ্ঠস্বর উত্তর',
+    listenBtn:         '🔊 শুনুন',
+    confidence:        'আত্মবিশ্বাস',
+    cleared:           'কথোপকথন মুছে গেছে',
+    voiceOnToast:      '🔊 কণ্ঠস্বর উত্তর চালু',
+    voiceOffToast:     '🔇 শুধুমাত্র পাঠ্য',
+    noSpeech:          'কোনো বক্তৃতা শনাক্ত হয়নি। আবার চেষ্টা করুন।',
+    micDenied:         '🎤 মাইক্রোফোন অ্যাক্সেস অস্বীকৃত।',
+    noSupport:         '🎤 এই ব্রাউজারে ভয়েস ইনপুট সমর্থিত নয়। Chrome ব্যবহার করুন।',
+    micFail:           'মাইক্রোফোন শুরু করা যায়নি।',
+    playbackFail:      'কণ্ঠস্বর চালাতে ব্যর্থ',
+    autoplayBlocked:   '🔊 উত্তর শুনতে ট্যাপ করুন',
+    online:            'অনলাইন',
+    offline:           'অফলাইন',
+    connecting:        'সংযোগ করছি',
+    clearBtn:          'মুছুন',
+    sendBtn:           'পাঠান',
+    textPlaceholder:   'বা এখানে টাইপ করুন…',
+  },
+  ta: {
+    greeting:      'வணக்கம், விவசாயி நண்பரே',
+    subtitle:      'மைக்கை அழுத்தி பயிர், மண், உரம், பாசனம், பூச்சி அல்லது கால்நடை பற்றி உங்கள் கேள்வியை பேசுங்கள்.',
+    chips: [
+      { label: '🌾 நெல் உரம்',          query: 'நெல்லுக்கு சிறந்த உரம் எது?' },
+      { label: '🪲 அசுவினி கட்டுப்பாடு', query: 'பருத்தியில் அசுவினியை எவ்வாறு கட்டுப்படுத்துவது?' },
+      { label: '💧 கோதுமை நீர்ப்பாசனம்', query: 'கோதுமைக்கான நீர்ப்பாசன அட்டவணை என்ன?' },
+      { label: '🍅 தக்காளி மண் pH',     query: 'தக்காளிக்கான மண் pH என்னவாக இருக்க வேண்டும்?' },
+      { label: '🌽 மக்காச்சோள பருவம்',  query: 'தமிழ்நாட்டில் மக்காச்சோளம் விதைக்க சிறந்த பருவம் எது?' },
+    ],
+    transcriptIdle:    'மைக்கை அழுத்தி உங்கள் கேள்வியை பேசுங்கள்…',
+    listening:         'கேட்கிறோம்…',
+    hintIdle:          'பேச தட்டவும் · நிறுத்த மீண்டும் தட்டவும்',
+    hintListening:     'கேட்கிறோம்… அனுப்ப மீண்டும் தட்டவும்',
+    ttsLabel:          '🔊 குரல் பதில்',
+    listenBtn:         '🔊 கேளுங்கள்',
+    confidence:        'நம்பகத்தன்மை',
+    cleared:           'உரையாடல் அழிக்கப்பட்டது',
+    voiceOnToast:      '🔊 குரல் பதில் இயக்கம்',
+    voiceOffToast:     '🔇 உரை மட்டும்',
+    noSpeech:          'பேச்சு எதுவும் கண்டறியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+    micDenied:         '🎤 மைக்ரோஃபோன் அனுமதி மறுக்கப்பட்டது.',
+    noSupport:         '🎤 இந்த உலாவியில் குரல் உள்ளீடு ஆதரிக்கப்படவில்லை. Chrome பயன்படுத்தவும்.',
+    micFail:           'மைக்ரோஃபோன் தொடங்க முடியவில்லை.',
+    playbackFail:      'குரல் இயக்க தோல்வி',
+    autoplayBlocked:   '🔊 பதில் கேட்க தட்டவும்',
+    online:            'இணையத்தில்',
+    offline:           'இணையமில்லை',
+    connecting:        'இணைக்கிறோம்',
+    clearBtn:          'அழி',
+    sendBtn:           'அனுப்பு',
+    textPlaceholder:   'அல்லது இங்கே தட்டச்சு செய்யுங்கள்…',
+  },
+  te: {
+    greeting:      'నమస్కారం, రైతు మిత్రుడా',
+    subtitle:      'మైక్‌ను నొక్కి పంటలు, నేల, ఎరువులు, నీటిపారుదల, తెగుళ్ళు లేదా పశువుల గురించి మీ ప్రశ్న చెప్పండి.',
+    chips: [
+      { label: '🌾 వరి ఎరువు',          query: 'వరికి అత్యుత్తమ ఎరువు ఏది?' },
+      { label: '🪲 పేను నియంత్రణ',      query: 'పత్తిలో పేనును ఎలా నియంత్రించాలి?' },
+      { label: '💧 గోధుమ నీటిపారుదల',   query: 'గోధుమకు నీటిపారుదల షెడ్యూల్ ఏమిటి?' },
+      { label: '🍅 టమాటో నేల pH',       query: 'టమాటో కోసం నేల pH ఎంత ఉండాలి?' },
+      { label: '🌽 మొక్కజొన్న సీజన్',   query: 'తెలంగాణలో మొక్కజొన్న విత్తడానికి అత్యుత్తమ సీజన్ ఏది?' },
+    ],
+    transcriptIdle:    'మైక్‌ను నొక్కి మీ ప్రశ్న చెప్పండి…',
+    listening:         'వింటున్నాం…',
+    hintIdle:          'మాట్లాడటానికి నొక్కండి · ఆపడానికి మళ్ళీ నొక్కండి',
+    hintListening:     'వింటున్నాం… పంపడానికి మళ్ళీ నొక్కండి',
+    ttsLabel:          '🔊 వాయిస్ సమాధానం',
+    listenBtn:         '🔊 వినండి',
+    confidence:        'నమ్మకం',
+    cleared:           'సంభాషణ తొలగించబడింది',
+    voiceOnToast:      '🔊 వాయిస్ సమాధానం ఆన్',
+    voiceOffToast:     '🔇 టెక్స్ట్ మాత్రమే',
+    noSpeech:          'మాట్లాట్లేదు. మళ్ళీ ప్రయత్నించండి.',
+    micDenied:         '🎤 మైక్రోఫోన్ అనుమతి నిరాకరించబడింది.',
+    noSupport:         '🎤 ఈ బ్రౌజర్‌లో వాయిస్ ఇన్‌పుట్ సపోర్ట్ లేదు. Chrome వాడండి.',
+    micFail:           'మైక్రోఫోన్ ప్రారంభించడం సాధ్యం కాలేదు.',
+    playbackFail:      'వాయిస్ ప్లేబ్యాక్ విఫలమైంది',
+    autoplayBlocked:   '🔊 సమాధానం వినడానికి నొక్కండి',
+    online:            'ఆన్‌లైన్',
+    offline:           'ఆఫ్‌లైన్',
+    connecting:        'కనెక్ట్ అవుతోంది',
+    clearBtn:          'తొలగించు',
+    sendBtn:           'పంపు',
+    textPlaceholder:   'లేదా ఇక్కడ టైప్ చేయండి…',
+  },
+  ml: {
+    greeting:      'നമസ്കാരം, കർഷക സുഹൃത്തേ',
+    subtitle:      'മൈക്ക് ടാപ്പ് ചെയ്ത് വിളകൾ, മണ്ണ്, വളം, ജലസേചനം, കീടങ്ങൾ അല്ലെങ്കിൽ കന്നുകാലി സംബന്ധിച്ച ചോദ്യം പറയൂ.',
+    chips: [
+      { label: '🌾 നെൽകൃഷി വളം',       query: 'നെൽകൃഷിക്ക് ഏറ്റവും നല്ല വളം ഏത്?' },
+      { label: '🪲 മൂട്ട നിയന്ത്രണം',   query: 'പരുത്തിയിൽ മൂട്ടയെ എങ്ങനെ നിയന്ത്രിക്കാം?' },
+      { label: '💧 ഗോതമ്പ് ജലസേചനം',   query: 'ഗോതമ്പിന് ജലസേചന ഷെഡ്യൂൾ എന്ത്?' },
+      { label: '🍅 തക്കാളി മണ്ണ് pH',   query: 'തക്കാളിക്ക് മണ്ണിന്റെ pH എത്ര ആയിരിക്കണം?' },
+      { label: '🌽 ചോളം സീസൺ',         query: 'കേരളത്തിൽ ചോളം വിതക്കാൻ ഏറ്റവും നല്ല സമയം ഏത്?' },
+    ],
+    transcriptIdle:    'മൈക്ക് ടാപ്പ് ചെയ്ത് ചോദ്യം പറയൂ…',
+    listening:         'കേൾക്കുന്നു…',
+    hintIdle:          'സംസാരിക്കാൻ ടാപ്പ് ചെയ്യൂ · നിർത്താൻ വീണ്ടും ടാപ്പ് ചെയ്യൂ',
+    hintListening:     'കേൾക്കുന്നു… അയക്കാൻ വീണ്ടും ടാപ്പ് ചെയ്യൂ',
+    ttsLabel:          '🔊 ശബ്ദ മറുപടി',
+    listenBtn:         '🔊 കേൾക്കൂ',
+    confidence:        'ആത്മവിശ്വാസം',
+    cleared:           'സംഭാഷണം മായ്‌ച്ചു',
+    voiceOnToast:      '🔊 ശബ്ദ മറുപടി ഓൺ',
+    voiceOffToast:     '🔇 ടെക്സ്റ്റ് മാത്രം',
+    noSpeech:          'ശബ്ദം കണ്ടെത്തിയില്ല. വീണ്ടും ശ്രമിക്കൂ.',
+    micDenied:         '🎤 മൈക്രോഫോൺ ആക്സസ് നിഷേധിച്ചു. ബ്രൗസർ ക്രമീകരണങ്ങളിൽ പ്രവർത്തനക്ഷമമാക്കൂ.',
+    noSupport:         '🎤 ഈ ബ്രൗസറിൽ വോയ്‌സ് ഇൻപുട്ട് പ്രവർത്തിക്കില്ല. Chrome ഉപയോഗിക്കൂ.',
+    micFail:           'മൈക്രോഫോൺ ആരംഭിക്കാൻ കഴിഞ്ഞില്ല.',
+    playbackFail:      'ശബ്ദ പ്ലേബാക്ക് പരാജയപ്പെട്ടു',
+    autoplayBlocked:   '🔊 മറുപടി കേൾക്കാൻ ടാപ്പ് ചെയ്യൂ',
+    online:            'ഓൺലൈൻ',
+    offline:           'ഓഫ്‌ലൈൻ',
+    connecting:        'ബന്ധിപ്പിക്കുന്നു',
+    clearBtn:          'മായ്ക്കൂ',
+    sendBtn:           'അയക്കൂ',
+    textPlaceholder:   'അല്ലെങ്കിൽ ഇവിടെ ടൈപ്പ് ചെയ്യൂ…',
+  },
+};
+
+// Fallback to English for any language we haven't translated yet
+function t(key) {
+  const strings = UI[CURRENT_LANG] || UI['en'];
+  return strings[key] ?? (UI['en'][key] ?? key);
+}
+
+// ── Config ────────────────────────────────────────────────────────────────
+const API_BASE   = window.location.origin;
+let SESSION_ID   = localStorage.getItem('agri_session_id') || null;
+let CURRENT_LANG = localStorage.getItem('agri_lang') || 'en';
+
+// ── Apply all UI strings for the current language ─────────────────────────
+function applyUI() {
+  const wc = document.getElementById('welcome-card');
+  if (wc) {
+    wc.querySelector('h2').textContent = t('greeting');
+    wc.querySelector('p').innerHTML = t('subtitle').replace('\n', '<br/>');
+    const chipsCont = wc.querySelector('.chips');
+    chipsCont.innerHTML = '';
+    const chips = (UI[CURRENT_LANG] || UI['en']).chips;
+    chips.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'chip';
+      div.textContent = c.label;
+      div.onclick = () => quickSend(c.query);
+      chipsCont.appendChild(div);
+    });
+  }
+
+  if (!isListening) setTranscript(t('transcriptIdle'), false);
+
+  const hint = document.getElementById('voice-hint');
+  if (hint) hint.textContent = isListening ? t('hintListening') : t('hintIdle');
+
+  const ttsLbl = document.querySelector('.tts-pill span');
+  if (ttsLbl) ttsLbl.textContent = t('ttsLabel');
+
+  const clearBtn = document.getElementById('clear-btn');
+  if (clearBtn) {
+    clearBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg> ${t('clearBtn')}`;
+  }
+
+  const textInput = document.getElementById('text-input');
+  if (textInput) textInput.placeholder = t('textPlaceholder');
+
+  const sendBtn = document.getElementById('send-btn');
+  if (sendBtn) sendBtn.textContent = t('sendBtn');
+
+  document.documentElement.dir = CURRENT_LANG === 'ur' ? 'rtl' : 'ltr';
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// VOICE — FIXED
+//
+// Root causes of the "voice not sending" bug:
+//   1. Old stopListening() set isListening=false BEFORE recognition.stop().
+//      So r.onend saw isListening=false and skipped sending.
+//   2. liveTranscript only held *finalized* words. Interim words spoken
+//      just before the tap were silently dropped.
+//
+// Fix:
+//   • Track interimText separately so nothing is lost.
+//   • The orb "stop tap" now just calls recognition.stop() — does NOT
+//     touch isListening. r.onend is the single place that reads
+//     isListening, sends the text, then resets everything.
+//   • stopListeningAbort() is used for forced stops (clear / lang change)
+//     — it uses recognition.abort() and immediately resets state WITHOUT
+//     sending.
+// ══════════════════════════════════════════════════════════════════════════
+
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition    = null;
+let isListening    = false;
+let liveTranscript = '';   // accumulated FINAL words
+let interimText    = '';   // current in-flight INTERIM words (not yet final)
+
+function langCodeToSpeechLang(code) {
+  const MAP = {
+    en: 'en-IN', hi: 'hi-IN', bn: 'bn-IN',
+    ta: 'ta-IN', te: 'te-IN', ml: 'ml-IN',
+    kn: 'kn-IN', mr: 'mr-IN', gu: 'gu-IN',
+    pa: 'pa-IN', ur: 'ur-PK',
+  };
+  return MAP[code] || 'en-IN';
+}
+
+function buildRecognition() {
+  if (!SpeechRec) return null;
+  const r = new SpeechRec();
+  r.continuous      = true;
+  r.interimResults  = true;
+  r.maxAlternatives = 1;
+  r.lang            = langCodeToSpeechLang(CURRENT_LANG);
+
+  r.onstart = () => {
+    isListening    = true;
+    liveTranscript = '';
+    interimText    = '';
+    setOrbListening(true);
+    setTranscript(t('listening'), false);
+  };
+
+  r.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const tx = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += tx;
+      else interim += tx;
+    }
+    if (final) liveTranscript += final;
+    interimText = interim;
+    // Show combined live transcript to the user
+    const display = (liveTranscript + interim).trim();
+    if (display) setTranscript(display, true);
+  };
+
+  r.onerror = (e) => {
+    console.warn('[Speech error]', e.error);
+    // Do NOT call stopListeningAbort() here — r.onend always fires after
+    // onerror and will handle cleanup + conditional send.
+    if (e.error === 'not-allowed')    showToast(t('micDenied'));
+    else if (e.error === 'no-speech') showToast(t('noSpeech'));
+    else showToast(`Speech error: ${e.error}`);
+  };
+
+  // ── THE KEY FIX: onend is the single authoritative place that sends ──
+  r.onend = () => {
+    // Capture the full transcript (finals + any trailing interim)
+    const fullText   = (liveTranscript + interimText).trim();
+    const wasSending = isListening;  // true = user tapped stop OR browser auto-ended
+
+    // Reset all state first
+    isListening    = false;
+    interimText    = '';
+    recognition    = null;
+    setOrbListening(false);
+
+    if (wasSending && fullText) {
+      // Normal flow: send whatever was spoken
+      setTranscript(t('transcriptIdle'), false);
+      sendMessage(fullText);
+    } else {
+      setTranscript(t('transcriptIdle'), false);
+    }
+  };
+
+  return r;
+}
+
+// ── Orb toggle ────────────────────────────────────────────────────────────
+document.getElementById('orb-btn').addEventListener('click', () => {
+  if (isListening) {
+    // FIX: Do NOT set isListening=false here. Just stop the engine.
+    // r.onend will fire next and handle sending + cleanup.
+    if (recognition) {
+      try { recognition.stop(); } catch (_) {}
+    }
+  } else {
+    startListening();
+  }
+});
+
+function startListening() {
+  if (!SpeechRec) { showToast(t('noSupport')); return; }
+  recognition = buildRecognition();
+  if (!recognition) { showToast(t('noSupport')); return; }
+  try {
+    recognition.start();
+  } catch (e) {
+    console.warn('[Speech start error]', e);
+    isListening = false;
+    recognition = null;
+    setOrbListening(false);
+    showToast(t('micFail'));
+  }
+}
+
+// Hard abort — used by clear button, language change, etc. Does NOT send.
+function stopListeningAbort() {
+  isListening = false;
+  interimText = '';
+  if (recognition) {
+    try { recognition.abort(); } catch (_) {}
+    recognition = null;
+  }
+  setOrbListening(false);
+  setTranscript(t('transcriptIdle'), false);
+}
+
+// Backward-compat alias still used in a few places
+function stopListening(resetTranscript = true) {
+  stopListeningAbort();
+  if (!resetTranscript) {
+    // caller wants to keep transcript; nothing extra needed
+  }
+}
+
+function setOrbListening(on) {
+  const wrap  = document.getElementById('orb-wrap');
+  const waves = document.getElementById('wave-bars');
+  const hint  = document.getElementById('voice-hint');
+  const micI  = document.getElementById('mic-icon');
+  const stopI = document.getElementById('stop-icon');
+
+  if (on) {
+    wrap.classList.add('listening');
+    waves.classList.add('visible');
+    micI.style.display  = 'none';
+    stopI.style.display = 'block';
+    hint.textContent    = t('hintListening');
+    hint.style.color    = 'var(--leaf-mid)';
+  } else {
+    wrap.classList.remove('listening');
+    waves.classList.remove('visible');
+    micI.style.display  = 'block';
+    stopI.style.display = 'none';
+    hint.textContent    = t('hintIdle');
+    hint.style.color    = '';
+  }
+}
+
+function setTranscript(text, isActive) {
+  const el = document.getElementById('transcript-bar');
+  el.textContent = text;
+  el.classList.toggle('active', isActive && !!text);
+}
+
+// ── Text input (always-on fallback) ───────────────────────────────────────
+document.getElementById('send-btn').addEventListener('click', () => {
+  const inp = document.getElementById('text-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  sendMessage(text);
+});
+
+document.getElementById('text-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('send-btn').click();
+  }
+});
+
+// ── Startup ───────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadLanguages();
+  applyUI();
+  checkAPIStatus();
+  setInterval(checkAPIStatus, 30_000);
+
+  const savedTTS = localStorage.getItem('agri_tts') === 'true';
+  document.getElementById('tts-checkbox').checked = savedTTS;
+
+  document.getElementById('tts-checkbox').addEventListener('change', function () {
+    localStorage.setItem('agri_tts', this.checked);
+    showToast(this.checked ? t('voiceOnToast') : t('voiceOffToast'));
+  });
+});
+
+// ── API status ────────────────────────────────────────────────────────────
+async function checkAPIStatus() {
+  const dot = document.getElementById('status-dot');
+  const lbl = document.getElementById('status-text');
+  try {
+    const r = await fetch(`${API_BASE}/api/status`, { signal: AbortSignal.timeout(5000) });
+    if (r.ok) { dot.classList.add('online');    lbl.textContent = t('online'); }
+    else       { dot.classList.remove('online'); lbl.textContent = t('offline'); }
+  } catch {
+    dot.classList.remove('online'); lbl.textContent = t('offline');
+  }
+}
+
+// ── Languages ─────────────────────────────────────────────────────────────
+async function loadLanguages() {
+  const fallback = [
+    {code:'en',name:'English'}, {code:'hi',name:'हिन्दी'},
+    {code:'bn',name:'বাংলা'},   {code:'ta',name:'தமிழ்'},
+    {code:'te',name:'తెలుగు'},  {code:'ml',name:'മലയാളം'},
+    {code:'kn',name:'ಕನ್ನಡ'},   {code:'mr',name:'मराठी'},
+    {code:'gu',name:'ગુજરાતી'}, {code:'pa',name:'ਪੰਜਾਬੀ'},
+    {code:'ur',name:'اردو'},
+  ];
+  let langs = fallback;
+  try {
+    const r = await fetch(`${API_BASE}/api/languages`);
+    if (r.ok) {
+      const apiLangs = await r.json();
+      langs = apiLangs.map(al => {
+        const fb = fallback.find(f => f.code === al.code);
+        return fb || al;
+      });
+    }
+  } catch {}
+
+  const sel = document.getElementById('lang-select');
+  langs.forEach(l => {
+    const opt = document.createElement('option');
+    opt.value = l.code; opt.textContent = l.name;
+    if (l.code === CURRENT_LANG) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  sel.addEventListener('change', () => {
+    CURRENT_LANG = sel.value;
+    localStorage.setItem('agri_lang', CURRENT_LANG);
+    applyUI();
+    showToast(sel.options[sel.selectedIndex].text);
+    // Restart mic in new language if currently listening
+    if (isListening) { stopListeningAbort(); startListening(); }
+  });
+}
+
+// ── Clear ─────────────────────────────────────────────────────────────────
+document.getElementById('clear-btn').addEventListener('click', async () => {
+  stopListeningAbort();
+  if (SESSION_ID) {
+    try { await fetch(`${API_BASE}/api/history/${SESSION_ID}`, { method: 'DELETE' }); } catch {}
+  }
+  SESSION_ID = null;
+  localStorage.removeItem('agri_session_id');
+  const win = document.getElementById('chat-window');
+  win.querySelectorAll('.msg-row, .typing-row').forEach(n => n.remove());
+  document.getElementById('welcome-card').style.display = '';
+  applyUI();
+  showToast(t('cleared'));
+});
+
+// ── Quick send (chips) ────────────────────────────────────────────────────
+function quickSend(text) {
+  setTranscript(text, true);
+  sendMessage(text);
+}
+
+// ── Send message ──────────────────────────────────────────────────────────
+async function sendMessage(text) {
+  text = (text || '').trim();
+  if (!text) return;
+
+  // Stop any ongoing speech before sending
+  if (isListening) stopListeningAbort();
+  setTranscript(t('transcriptIdle'), false);
+
+  hideWelcome();
+  appendMessage('user', text);
+
+  const orbBtn  = document.getElementById('orb-btn');
+  const sendBtn = document.getElementById('send-btn');
+  orbBtn.disabled  = true;
+  sendBtn.disabled = true;
+
+  const typingEl = showTyping();
+
+  try {
+    const body = {
+      message:    text,
+      session_id: SESSION_ID,
+      language:   CURRENT_LANG,
+      tts:        false,
+    };
+    const r = await fetch(`${API_BASE}/api/chat`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+
+    SESSION_ID = data.session_id;
+    localStorage.setItem('agri_session_id', SESSION_ID);
+
+    removeTyping(typingEl);
+    appendBotMessage(data);
+
+    if (document.getElementById('tts-checkbox').checked && data.answer) {
+      playTTS(data.answer, data.language || CURRENT_LANG);
+    }
+  } catch (err) {
+    removeTyping(typingEl);
+    appendMessage('bot', `⚠️ Error: ${err.message}. Is the API server running?`);
+  } finally {
+    orbBtn.disabled  = false;
+    sendBtn.disabled = false;
+  }
+}
+
+// ── TTS ───────────────────────────────────────────────────────────────────
+let _ttsAudio = null;
+async function playTTS(text, langCode) {
+  try {
+    if (_ttsAudio) { _ttsAudio.pause(); _ttsAudio.src = ''; _ttsAudio = null; }
+    const params = new URLSearchParams({ text: text.slice(0, 3000), language: langCode || CURRENT_LANG });
+    _ttsAudio = new Audio(`${API_BASE}/api/tts?${params}`);
+    _ttsAudio.preload = 'auto';
+    _ttsAudio.onerror = () => showToast(t('playbackFail'), 3000);
+    const p = _ttsAudio.play();
+    if (p !== undefined) p.catch(() => showToast(t('autoplayBlocked'), 4000));
+  } catch (e) { console.warn('[TTS]', e); }
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────
+function hideWelcome() {
+  const wc = document.getElementById('welcome-card');
+  if (wc) wc.style.display = 'none';
+}
+
+function appendMessage(role, text) {
+  const win = document.getElementById('chat-window');
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = role === 'user' ? '👨‍🌾' : '🌱';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  win.appendChild(row);
+  win.scrollTop = win.scrollHeight;
+  return row;
+}
+
+function appendBotMessage(data) {
+  const win = document.getElementById('chat-window');
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = '🌱';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  const answerEl = document.createElement('div');
+  answerEl.textContent = data.answer;
+  bubble.appendChild(answerEl);
+
+  if (data.model_used) {
+    const respLang  = data.language || CURRENT_LANG;
+    const langLabel = document.querySelector(`#lang-select option[value="${respLang}"]`)?.textContent || respLang;
+    const langFlag  = respLang !== 'en' ? ` · 🌐 ${langLabel}` : '';
+
+    const badge = document.createElement('div');
+    badge.className = 'model-badge';
+    badge.innerHTML = `🤖 ${escapeHtml(data.model_used)}${langFlag} &nbsp;·&nbsp; ${(data.score*100).toFixed(0)}% ${t('confidence')}`;
+    bubble.appendChild(badge);
+
+    const scoreWrap = document.createElement('div');
+    scoreWrap.className = 'score-bar-wrap';
+    const scoreLbl = document.createElement('span');
+    scoreLbl.textContent = t('confidence');
+    const bar  = document.createElement('div'); bar.className = 'score-bar';
+    const fill = document.createElement('div'); fill.className = 'score-bar-fill';
+    fill.style.width = '0%';
+    bar.appendChild(fill);
+    scoreWrap.appendChild(scoreLbl);
+    scoreWrap.appendChild(bar);
+    bubble.appendChild(scoreWrap);
+    setTimeout(() => { fill.style.width = `${Math.min(data.score * 100, 100).toFixed(1)}%`; }, 100);
+  }
+
+  const speakBtn = document.createElement('button');
+  speakBtn.className = 'speak-btn';
+  speakBtn.innerHTML = t('listenBtn');
+  speakBtn.title     = t('listenBtn');
+  speakBtn.onclick   = () => playTTS(data.answer, data.language || CURRENT_LANG);
+  bubble.appendChild(speakBtn);
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  win.appendChild(row);
+  win.scrollTop = win.scrollHeight;
+}
+
+function showTyping() {
+  const win  = document.getElementById('chat-window');
+  const row  = document.createElement('div'); row.className = 'typing-row';
+  const av   = document.createElement('div'); av.className = 'avatar'; av.textContent = '🌱';
+  const bub  = document.createElement('div'); bub.className = 'typing-bubble';
+  bub.innerHTML = '<span></span><span></span><span></span>';
+  row.appendChild(av); row.appendChild(bub);
+  win.appendChild(row);
+  win.scrollTop = win.scrollHeight;
+  return row;
+}
+
+function removeTyping(el) {
+  if (el && el.parentNode) el.parentNode.removeChild(el);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function showToast(msg, duration = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration);
+}
+</script>
+</body>
+</html>

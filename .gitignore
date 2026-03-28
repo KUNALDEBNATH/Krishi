@@ -1,0 +1,4 @@
+model.pkl
+checkpoints/
+__pycache__/
+*.pyc
